@@ -13,9 +13,6 @@ using Microsoft.Xna.Framework.Media;
 
 namespace FerozHead
 {
-    /// <summary>
-    /// This is the main type for your game
-    /// </summary>
     public class FerozHead : Microsoft.Xna.Framework.Game
     {
         #region MFW
@@ -64,6 +61,7 @@ namespace FerozHead
         bool blueCountingUp = false;
         byte greenIntensity = 160;
         bool greenCountingUp = true;
+        Random rand = new Random();
         #endregion
 
         public FerozHead()
@@ -76,15 +74,8 @@ namespace FerozHead
             Content.RootDirectory = "Content";
         }
 
-        /// <summary>
-        /// Allows the game to perform any initialization it needs to before starting to run.
-        /// This is where it can query for any required services and load any non-graphic
-        /// related content.  Calling base.Initialize will enumerate through any components
-        /// and initialize them as well.
-        /// </summary>
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
             ferozPosition.X = graphics.PreferredBackBufferWidth / 2;
             ferozPosition.Y = graphics.PreferredBackBufferHeight / 2;
             base.Initialize();
@@ -95,13 +86,8 @@ namespace FerozHead
             kills = 0;
         }
 
-        /// <summary>
-        /// LoadContent will be called once per game and is the place to load
-        /// all of your content.
-        /// </summary>
         protected override void LoadContent()
         {
-            // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
             grunt1 = Content.Load<SoundEffect>("attack1");
             mundo = Content.Load<SoundEffect>("MUNDO");
@@ -123,23 +109,13 @@ namespace FerozHead
             origin.Y = bulletTexture.Height / 2;
             center.X = 0;
             center.Y = 0;
-            // TODO: use this.Content to load your game content here
         }
 
-        /// <summary>
-        /// UnloadContent will be called once per game and is the place to unload
-        /// all content.
-        /// </summary>
         protected override void UnloadContent()
         {
             // TODO: Unload any non ContentManager content here
         }
 
-        /// <summary>
-        /// Allows the game to run logic such as updating the world,
-        /// checking for collisions, gathering input, and playing audio.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
             MakeEnemy(gameTime);
@@ -148,7 +124,6 @@ namespace FerozHead
             LeftThumbY = GamePad.GetState(PlayerIndex.One).ThumbSticks.Left.Y * -15;
             RightThumbX = GamePad.GetState(PlayerIndex.One).ThumbSticks.Right.X;
             RightThumbY = GamePad.GetState(PlayerIndex.One).ThumbSticks.Right.Y;
-            // Allows the game to exit
             float elapsed = (float)gameTime.TotalGameTime.Seconds * 2;
             RotationAngle += elapsed;
             //float circle = MathHelper.Pi;
@@ -162,11 +137,11 @@ namespace FerozHead
             UpdateInput(gameTime);
             if (ferozPosition.X < -60 && Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.Left) || ferozPosition.X <-60 && GamePad.GetState(PlayerIndex.One).ThumbSticks.Left.X < 0)
             {
-                ferozPosition.X = graphics.PreferredBackBufferWidth + 100;
+                ferozPosition.X = graphics.PreferredBackBufferWidth + 60;
             }
-            if (ferozPosition.X > graphics.PreferredBackBufferWidth + 100 && Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.Right) || ferozPosition.X > graphics.PreferredBackBufferWidth && GamePad.GetState(PlayerIndex.One).ThumbSticks.Left.X > 0)
+            if (ferozPosition.X > graphics.PreferredBackBufferWidth + 60 && Keyboard.GetState(PlayerIndex.One).IsKeyDown(Keys.Right) || ferozPosition.X > graphics.PreferredBackBufferWidth && GamePad.GetState(PlayerIndex.One).ThumbSticks.Left.X > 0)
             {
-                ferozPosition.X = -100;
+                ferozPosition.X = -60;
             }
             if (redIntensity == 255) redCountingUp = false;
             if (redIntensity == 0) redCountingUp = true;
@@ -179,12 +154,13 @@ namespace FerozHead
             if (greenIntensity == 255) greenCountingUp = false;
             if (greenIntensity == 0) greenCountingUp = true;
             if (greenCountingUp) greenIntensity++; else greenIntensity--;
-            // TODO: Add your update logic here
+
             UpdateCollision();
             UpdateBulletPositions();
             
             base.Update(gameTime);
         }
+        
         private void UpdateCollision()
         {
             Rectangle rectangle1;
@@ -204,18 +180,20 @@ namespace FerozHead
                     if (rectangle1.Intersects(rectangle2))
                     {
                         enemyList.RemoveAt(j);
+                        bulletTexture.RemoveAt(i);
                         kills++;
+                        break;
                     }
                 }
             }
 
         }
+        
         private void MakeEnemy(GameTime gameTime)
         {
             double currentTime = gameTime.TotalGameTime.TotalMilliseconds;
             if (currentTime - lastEnemyTime > 50)
             {
-                Random rand = new Random();
                 float enemyXPos = rand.Next(1, graphics.PreferredBackBufferWidth);
                 Enemy newEnemy = new Enemy(enemyXPos , -150);
                 enemyList.Add(newEnemy);
@@ -223,6 +201,7 @@ namespace FerozHead
 
             }
         }
+        
         private void DrawEnemies()
         { 
             if (enemyList.Count > 0)
@@ -319,6 +298,7 @@ namespace FerozHead
 
             
         }
+        
         private void DrawBullets()
         {
             if (bulletList.Count > 0)
@@ -342,6 +322,7 @@ namespace FerozHead
                 }
             }
         }
+        
         private void UpdateBulletPositions()
         {
             for (int i = 0; i < bulletList.Count; i++)
@@ -359,6 +340,7 @@ namespace FerozHead
                 }    
             }
         }
+        
         private float MoveForward(Vector2 pos)
         {
             if (heibo == false)
@@ -373,10 +355,6 @@ namespace FerozHead
             }
         }
 
-        /// <summary>
-        /// This is called when the game should draw itself.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
             
@@ -407,10 +385,6 @@ namespace FerozHead
         
             spriteBatch.DrawString(font, "kills: " + kills, new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
             spriteBatch.End();
-            
-            
-
-            // TODO: Add your drawing code here
 
             base.Draw(gameTime);
         }
